@@ -6,9 +6,9 @@
 
 ## Как запустить
 
-- Скачайте код
-- Откройте в браузере файл index.html
-
+```bash
+docker-compose up --build -d
+```
 
 ## Настройки
 
@@ -49,10 +49,3 @@
   },
 }
 ```
-
-
-
-## Используемые библиотеки
-
-- [Leaflet](https://leafletjs.com/) — отрисовка карты
-- [loglevel](https://www.npmjs.com/package/loglevel) для логгирования

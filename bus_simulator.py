@@ -2,10 +2,10 @@ import argparse
 import itertools
 import json
 import logging
-import os
 import random
 from functools import wraps
 from logging import config as logging_config
+from pathlib import Path
 
 import trio
 from trio import MemoryReceiveChannel, MemorySendChannel
@@ -81,7 +81,7 @@ def parse_args():
     parser.add_argument(
         "--server",
         help="адрес сервера",
-        default="ws://127.0.0.1:8080/ws",
+        default="ws://127.0.0.1:80/bus_ws/",
     )
     parser.add_argument(
         "--routes_number",
@@ -135,26 +135,24 @@ async def main():
             send_channels.append(send_channel)
             nursery.start_soon(send_updates, receive_channel, args.server)
         r_count = 0
-        for filename in os.listdir(FOLDER):
+        for filepath in Path(FOLDER).glob("*.json"):
             if r_count > args.routes_number:
                 break
-            if filename.endswith(".json"):
-                filepath = os.path.join(FOLDER, filename)
-                with open(filepath, "r", encoding="utf8") as f:
-                    data = json.load(f)
-                for i in range(args.buses_per_route):
-                    nursery.start_soon(
-                        fake_bus,
-                        data,
-                        generate_bus_id(
-                            route_id=data["name"],
-                            bus_index=i,
-                            emulator_id=args.emulator_id,
-                        ),
-                        random.choice(send_channels),
-                        args.refresh_timeout,
-                    )
-                r_count += 1
+            with open(filepath, "r", encoding="utf8") as f:
+                data = json.load(f)
+            for i in range(args.buses_per_route):
+                nursery.start_soon(
+                    fake_bus,
+                    data,
+                    generate_bus_id(
+                        route_id=data["name"],
+                        bus_index=i,
+                        emulator_id=args.emulator_id,
+                    ),
+                    random.choice(send_channels),
+                    args.refresh_timeout,
+                )
+            r_count += 1
 
 
 if __name__ == "__main__":

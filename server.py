@@ -91,7 +91,7 @@ async def client_server(request: WebSocketRequest):
         nursery.start_soon(listen_browser, ws, win_bounds)
 
 
-async def bus_server(request: WebSocketRequest):
+async def listen_bus(request: WebSocketRequest):
     ws = await request.accept()
     while True:
         try:
@@ -129,11 +129,9 @@ async def main():
     args = parse_args()
     async with trio.open_nursery() as nursery:
         nursery.start_soon(
-            serve_websocket, client_server, "127.0.0.1", args.browser_port, None
+            serve_websocket, client_server, "0.0.0.0", args.browser_port, None
         )
-        nursery.start_soon(
-            serve_websocket, bus_server, "127.0.0.1", args.bus_port, None
-        )
+        nursery.start_soon(serve_websocket, listen_bus, "0.0.0.0", args.bus_port, None)
 
 
 if __name__ == "__main__":
